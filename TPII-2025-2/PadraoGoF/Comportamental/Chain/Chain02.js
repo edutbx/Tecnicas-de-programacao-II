@@ -72,6 +72,27 @@ class EtapaAutenticacao extends EtapaProcesso {
     }
 }
 
+class EtapaDeteccaoFraude extends EtapaProcesso {
+    processar(pagamento) {
+        console.log(">>>> Verificando possíveis fraudes na transação...");
+
+        setTimeout(() => {
+            const suspeitaFraude = Math.random() < 0.5; // 50% de chance de simular fraude
+
+            if (suspeitaFraude) {
+                console.log("[**] Fraude detectada! Transação bloqueada.");
+                console.log("[X] Pagamento cancelado por segurança.");
+            } else {
+                console.log("[OK] Nenhuma fraude detectada. Transação segura.");
+                if (this.proximaEtapa) {
+                    this.proximaEtapa.processar(pagamento);
+                }
+            }
+        }, 1000);
+    }
+}
+
+
 class EtapaConfirmacao extends EtapaProcesso {
     processar(pagamento) {
         console.log(">>>> Confirmando pagamento...");
@@ -97,12 +118,14 @@ class Cliente {
         const etapaEnvioInformacoes = new EtapaEnvioInformacoes();
         const etapaAutenticacao = new EtapaAutenticacao();
         const etapaConfirmacao = new EtapaConfirmacao();
+        const etapaDeteccaoFraude = new EtapaDeteccaoFraude();
 
         // Configuração da cadeia:
         etapaConexao.setProximaEtapa(etapaValidacao);
         etapaValidacao.setProximaEtapa(etapaEnvioInformacoes);
         etapaEnvioInformacoes.setProximaEtapa(etapaAutenticacao);
-        etapaAutenticacao.setProximaEtapa(etapaConfirmacao);
+        etapaAutenticacao.setProximaEtapa(etapaDeteccaoFraude);
+        etapaDeteccaoFraude.setProximaEtapa(etapaConfirmacao);
 
         // Criação do pagamento
         const pagamento = new Pagamento(valor);
